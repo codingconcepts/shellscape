@@ -229,13 +229,3 @@ terminal:
 For an example of each (using the text "Shellscape"), see [example fonts](./example-fonts.md).
 
 ## Todos
-
-* All text to be copied (can't currently focus)
-
-* Display directories in tree format:
-```
-blog/
-├── first-post
-├── second-post
-└── third-post
-```

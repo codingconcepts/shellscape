@@ -606,7 +606,10 @@
   // Focus input on click anywhere in terminal body
   body.addEventListener('click', function (e) {
     if (e.target.tagName !== 'A' && e.target.tagName !== 'INPUT') {
-      input.focus();
+      var sel = window.getSelection();
+      if (!sel || sel.isCollapsed) {
+        input.focus();
+      }
     }
   });
 
