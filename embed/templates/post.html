@@ -1,0 +1,28 @@
+{{ define "title" }}{{ .Page.Frontmatter.Title }} - {{ .Site.Title }}{{ end }}
+
+{{ define "content" }}
+<div class="content" id="page-content" data-template="post">
+  {{ if .Page.BannerHTML }}
+  <pre class="post-banner">{{ .Page.BannerHTML }}</pre>
+  {{ end }}
+  <div class="post-header">
+    <h1 class="post-header__title">{{ .Page.Frontmatter.Title }}</h1>
+    <div class="post-header__meta">
+      {{ if not .Page.Frontmatter.Date.IsZero }}
+      <span>{{ .Page.Frontmatter.Date.Format .BlogConfig.DateFormat }}</span>
+      {{ end }}
+      {{ if .BlogConfig.ShowReadingTime }}
+      <span>{{ .Page.ReadingTime }} min read</span>
+      {{ end }}
+      {{ if and .BlogConfig.ShowTags .Page.Frontmatter.Tags }}
+      <div class="tags">
+        {{ range .Page.Frontmatter.Tags }}
+        <a href="/blog/tags/{{ . }}" class="tag">#{{ . }}</a>
+        {{ end }}
+      </div>
+      {{ end }}
+    </div>
+  </div>
+  {{ .Page.HTMLContent }}
+</div>
+{{ end }}

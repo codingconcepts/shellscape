@@ -1,0 +1,51 @@
+/* Custom theme example - copy this file, rename the folder, and set theme: "your-name" in config.yaml */
+/* See the built-in "terminal" and "light" themes for reference. */
+/* This is a retro amber CRT theme to show what's possible. */
+
+:root {
+  --ss-bg: #0a0800;
+  --ss-bg-secondary: #1a1400;
+  --ss-bg-tertiary: #2a2200;
+  --ss-text: #ffb000;
+  --ss-text-muted: #806000;
+  --ss-text-bright: #ffd060;
+
+  --ss-accent: #ffcc00;
+  --ss-accent-hover: #ffe066;
+  --ss-green: #ccaa00;
+  --ss-red: #ff6600;
+  --ss-yellow: #ffcc00;
+  --ss-purple: #ff9933;
+  --ss-cyan: #ffdd44;
+  --ss-orange: #ff8800;
+
+  --ss-prompt-user: #ffcc00;
+  --ss-prompt-separator: #ffb000;
+  --ss-prompt-path: #ffd060;
+  --ss-cursor: #ffb000;
+
+  --ss-chrome-bg: #050400;
+  --ss-chrome-border: #3a2e00;
+  --ss-dot-red: #ff6600;
+  --ss-dot-yellow: #ffcc00;
+  --ss-dot-green: #ccaa00;
+
+  --ss-font-mono: 'VT323', 'Courier New', 'Lucida Console', monospace;
+  --ss-font-size: 16px;
+  --ss-line-height: 1.5;
+
+  --ss-radius: 4px;
+  --ss-shadow: 0 0 40px rgba(255, 176, 0, 0.15), 0 0 0 1px rgba(255, 176, 0, 0.1);
+
+  --ss-code-bg: #1a1400;
+  --ss-code-border: #3a2e00;
+
+  --ss-link: #ffcc00;
+  --ss-link-hover: #ffe066;
+
+  --ss-tag-bg: #2a2200;
+  --ss-tag-text: #ffcc00;
+
+  --ss-scrollbar-track: #0a0800;
+  --ss-scrollbar-thumb: #3a2e00;
+}

@@ -1,0 +1,25 @@
+{{ define "title" }}{{ .Page.Frontmatter.Title }} - {{ .Site.Title }}{{ end }}
+
+{{ define "content" }}
+<div class="content" id="page-content" data-template="blog-tag">
+  <h2>{{ .Page.Frontmatter.Title }}</h2>
+  <p style="color: var(--ss-text-muted); margin-bottom: 1rem;">{{ len .Posts }} post{{ if ne (len .Posts) 1 }}s{{ end }}</p>
+  {{ if .Posts }}
+  <ul class="post-list">
+    {{ range .Posts }}
+    <li class="post-item">
+      <div class="post-item__header">
+        {{ if not .Frontmatter.Date.IsZero }}
+        <span class="post-item__date">{{ .Frontmatter.Date.Format "Jan 2, 2006" }}</span>
+        {{ end }}
+        <span class="post-item__title"><a href="{{ .URL }}">{{ .Frontmatter.Title }}</a></span>
+      </div>
+      {{ if .Frontmatter.Description }}
+      <p class="post-item__description">{{ .Frontmatter.Description }}</p>
+      {{ end }}
+    </li>
+    {{ end }}
+  </ul>
+  {{ end }}
+</div>
+{{ end }}

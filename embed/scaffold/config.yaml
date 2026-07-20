@@ -1,0 +1,46 @@
+site:
+  title: "My Site"
+  description: "A terminal-themed personal site"
+  author: "Your Name"
+  base_url: "http://localhost:1313"
+  language: "en"
+
+theme: "terminal"    # built-in: terminal, light - or use a custom theme from themes/
+
+nav:
+  - label: "Home"
+    path: "/"
+  - label: "About"
+    path: "/about"
+  - label: "Blog"
+    path: "/blog"
+
+terminal:
+  prompt: ""
+  banner:
+    text: "my site"
+    # font: "slant"       # default; try: big, standard, small, banner3, 3-d, colossal, larry3d
+    # color_type: "letter"  # options: letter, gradient-lr, gradient-tb
+    # colors are optional - defaults to rainbow
+    # colors:
+    #   - "#e06c75"
+    #   - "#d19a66"
+    #   - "#e5c07b"
+    #   - "#98c379"
+    #   - "#56b6c2"
+    #   - "#61afef"
+    #   - "#c678dd"
+
+blog:
+  posts_dir: "blog"
+  date_format: "Jan 2, 2006"
+  show_reading_time: true
+  show_tags: true
+  # code_style_dark: "dracula"    # syntax highlighting for dark mode
+  # code_style_light: "github"    # syntax highlighting for light mode
+
+footer:
+  text: "Built with shellscape"
+  links:
+    - label: "GitHub"
+      url: "https://github.com/codingconcepts/shellscape"

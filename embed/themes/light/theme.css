@@ -1,0 +1,47 @@
+:root {
+  --ss-bg: #ffffff;
+  --ss-bg-secondary: #f6f8fa;
+  --ss-bg-tertiary: #e1e4e8;
+  --ss-text: #24292f;
+  --ss-text-muted: #57606a;
+  --ss-text-bright: #1b1f24;
+
+  --ss-accent: #0969da;
+  --ss-accent-hover: #0550ae;
+  --ss-green: #1a7f37;
+  --ss-red: #cf222e;
+  --ss-yellow: #9a6700;
+  --ss-purple: #8250df;
+  --ss-cyan: #1a7f37;
+  --ss-orange: #bc4c00;
+
+  --ss-prompt-user: #1a7f37;
+  --ss-prompt-separator: #24292f;
+  --ss-prompt-path: #0969da;
+  --ss-cursor: #24292f;
+
+  --ss-chrome-bg: #f6f8fa;
+  --ss-chrome-border: #d0d7de;
+  --ss-dot-red: #ff5f57;
+  --ss-dot-yellow: #febc2e;
+  --ss-dot-green: #28c840;
+
+  --ss-font-mono: 'JetBrains Mono', 'Fira Code', 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+  --ss-font-size: 14px;
+  --ss-line-height: 1.6;
+
+  --ss-radius: 10px;
+  --ss-shadow: 0 8px 24px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.06);
+
+  --ss-code-bg: #f6f8fa;
+  --ss-code-border: #d0d7de;
+
+  --ss-link: #0969da;
+  --ss-link-hover: #0550ae;
+
+  --ss-tag-bg: #ddf4ff;
+  --ss-tag-text: #0550ae;
+
+  --ss-scrollbar-track: #f6f8fa;
+  --ss-scrollbar-thumb: #d0d7de;
+}

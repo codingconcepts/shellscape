@@ -1,0 +1,7 @@
+{{ define "title" }}{{ .Page.Frontmatter.Title }} - {{ .Site.Title }}{{ end }}
+
+{{ define "content" }}
+<div class="content" id="page-content" data-template="page">
+  {{ .Page.HTMLContent }}
+</div>
+{{ end }}

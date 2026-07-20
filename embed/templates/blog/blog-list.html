@@ -1,0 +1,38 @@
+{{ define "title" }}Blog - {{ .Site.Title }}{{ end }}
+
+{{ define "content" }}
+<div class="content" id="page-content" data-template="blog-list">
+  <h2>Blog</h2>
+  {{ if .Posts }}
+  <ul class="post-list">
+    {{ range .Posts }}
+    <li class="post-item">
+      <div class="post-item__header">
+        {{ if not .Frontmatter.Date.IsZero }}
+        <span class="post-item__date">{{ .Frontmatter.Date.Format "Jan 2, 2006" }}</span>
+        {{ end }}
+        <span class="post-item__title"><a href="{{ .URL }}">{{ .Frontmatter.Title }}</a></span>
+      </div>
+      {{ if .Frontmatter.Description }}
+      <p class="post-item__description">{{ .Frontmatter.Description }}</p>
+      {{ end }}
+      <div class="post-item__meta">
+        {{ if $.BlogConfig.ShowReadingTime }}
+        <span>{{ .ReadingTime }} min read</span>
+        {{ end }}
+        {{ if and $.BlogConfig.ShowTags .Frontmatter.Tags }}
+        <div class="tags">
+          {{ range .Frontmatter.Tags }}
+          <a href="/blog/tags/{{ . }}" class="tag">#{{ . }}</a>
+          {{ end }}
+        </div>
+        {{ end }}
+      </div>
+    </li>
+    {{ end }}
+  </ul>
+  {{ else }}
+  <p>No posts yet. Check back soon!</p>
+  {{ end }}
+</div>
+{{ end }}
