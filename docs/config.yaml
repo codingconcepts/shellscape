@@ -1,0 +1,39 @@
+site:
+  title: "Shellscape"
+  description: "A static site generator that produces interactive terminal-themed websites"
+  author: "Rob Reid"
+  base_url: "https://shellscape.io"
+  language: "en"
+
+theme: "terminal"
+
+nav:
+  - label: "Home"
+    path: "/"
+  - label: "Install"
+    path: "/docs/install"
+  - label: "Get Started"
+    path: "/docs/getting-started"
+  - label: "Configuration"
+    path: "/docs/configuration"
+
+terminal:
+  prompt: ""
+  banner:
+    text: "shellscape"
+    font: colossal
+    color_type: "gradient-lr"
+
+blog:
+  posts_dir: "docs"
+  date_format: "2006-02-01"
+  show_reading_time: true
+  show_tags: true
+  code_style_dark: "paraiso-dark"
+  code_style_light: "paraiso-light"
+
+footer:
+  text: "Built with shellscape"
+  links:
+    - label: "GitHub"
+      url: "https://github.com/codingconcepts/shellscape"

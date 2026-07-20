@@ -35,7 +35,7 @@
       if (page.tags && page.tags.length) {
         html += '<div class="tags">';
         for (var i = 0; i < page.tags.length; i++) {
-          html += '<a href="/blog/tags/' + encodeURIComponent(page.tags[i]) + '" class="tag">#' + escapeHtml(page.tags[i]) + '</a>';
+          html += '<a href="/' + SITE.postsDir + '/tags/' + encodeURIComponent(page.tags[i]) + '" class="tag">#' + escapeHtml(page.tags[i]) + '</a>';
         }
         html += '</div>';
       }
@@ -108,10 +108,10 @@
           }
           entries.push({ name: url.substring(1), type: hasChildren ? 'dir' : 'file', url: url, title: page.title });
         }
-      } else if (path === '/blog') {
-        // In blog: show posts
-        if (url.indexOf('/blog/') === 0 && url !== '/blog') {
-          var slug = url.substring(6);
+      } else if (path === '/' + SITE.postsDir) {
+        var postsPrefix = '/' + SITE.postsDir + '/';
+        if (url.indexOf(postsPrefix) === 0 && url !== '/' + SITE.postsDir) {
+          var slug = url.substring(postsPrefix.length);
           if (slug.indexOf('/') === -1) {
             entries.push({ name: slug, type: 'file', url: url, title: page.title });
           }
@@ -128,15 +128,16 @@
       }
     }
 
-    // Ensure blog dir shows at root
+    // Ensure posts dir shows at root
     if (path === '/') {
-      var hasBlog = false;
+      var postsDir = SITE.postsDir;
+      var hasPostsDir = false;
       for (var i = 0; i < entries.length; i++) {
-        if (entries[i].name === 'blog') { hasBlog = true; break; }
+        if (entries[i].name === postsDir) { hasPostsDir = true; break; }
       }
       var blogPosts = SITE.blog && SITE.blog.posts;
-      if (!hasBlog && blogPosts && blogPosts.length > 0) {
-        entries.push({ name: 'blog', type: 'dir', url: '/blog', title: 'Blog' });
+      if (!hasPostsDir && blogPosts && blogPosts.length > 0) {
+        entries.push({ name: postsDir, type: 'dir', url: '/' + postsDir, title: postsDir.charAt(0).toUpperCase() + postsDir.slice(1) });
       }
     }
 

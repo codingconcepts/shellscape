@@ -20,12 +20,12 @@ jobs:
       - name: Build shellscape
         run: go build -o shellscape ./cmd/shellscape
 
-      - name: Build site
-        run: ./shellscape build
+      - name: Build docs site
+        run: ./shellscape build -c docs/config.yaml
 
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy dist --project-name=${{ vars.CLOUDFLARE_PROJECT_NAME }}
+          command: pages deploy docs/dist --project-name=${{ vars.CLOUDFLARE_PROJECT_NAME }}

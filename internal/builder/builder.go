@@ -87,7 +87,7 @@ func (b *Builder) Build() (*BuildResult, error) {
 		return nil, fmt.Errorf("loading pages: %w", err)
 	}
 
-	posts, err := content.LoadBlogPosts(blogDir, b.renderer, b.drafts)
+	posts, err := content.LoadBlogPosts(blogDir, b.renderer, b.drafts, b.cfg.Blog.PostsDir)
 	if err != nil {
 		return nil, fmt.Errorf("loading posts: %w", err)
 	}
@@ -268,8 +268,9 @@ func (b *Builder) buildSiteDataJSON(pages []*content.Page, posts []*content.Page
 			"asciiArt":   b.cfg.Terminal.ASCIIArt,
 			"bannerHTML": banner.Render(b.cfg.Terminal.Banner.Text, b.cfg.Terminal.Banner.Font, b.cfg.Terminal.Banner.Colors, b.cfg.Terminal.Banner.ColorType),
 		},
-		"nav":   b.cfg.Nav,
-		"pages": map[string]any{},
+		"nav":      b.cfg.Nav,
+		"postsDir": b.cfg.Blog.PostsDir,
+		"pages":    map[string]any{},
 		"blog": map[string]any{
 			"posts": []any{},
 			"tags":  map[string]any{},
@@ -362,9 +363,9 @@ func (b *Builder) renderPage(tmpls map[string]*template.Template, page *content.
 
 func (b *Builder) renderBlogList(tmpls map[string]*template.Template, posts []*content.Page, tags map[string][]*content.Page, siteDataJSON template.JS) error {
 	listPage := &content.Page{
-		URL: "/blog",
+		URL: "/" + b.cfg.Blog.PostsDir,
 		Frontmatter: content.Frontmatter{
-			Title:       "Blog",
+			Title:       strings.ToTitle(b.cfg.Blog.PostsDir[:1]) + b.cfg.Blog.PostsDir[1:],
 			Description: "All posts",
 			Template:    "blog-list",
 		},
@@ -372,7 +373,7 @@ func (b *Builder) renderBlogList(tmpls map[string]*template.Template, posts []*c
 
 	data := b.makeTemplateData(listPage, posts, tags, siteDataJSON)
 
-	outPath := filepath.Join(b.outDir, "blog", "index.html")
+	outPath := filepath.Join(b.outDir, b.cfg.Blog.PostsDir, "index.html")
 	if err := os.MkdirAll(filepath.Dir(outPath), 0o755); err != nil {
 		return err
 	}
@@ -388,7 +389,7 @@ func (b *Builder) renderBlogList(tmpls map[string]*template.Template, posts []*c
 
 func (b *Builder) renderTagPage(tmpls map[string]*template.Template, tag string, tagPosts []*content.Page, allPosts []*content.Page, tags map[string][]*content.Page, siteDataJSON template.JS) error {
 	tagPage := &content.Page{
-		URL: "/blog/tags/" + tag,
+		URL: "/" + b.cfg.Blog.PostsDir + "/tags/" + tag,
 		Frontmatter: content.Frontmatter{
 			Title:       "Tag: " + tag,
 			Description: fmt.Sprintf("Posts tagged %q", tag),
@@ -398,7 +399,7 @@ func (b *Builder) renderTagPage(tmpls map[string]*template.Template, tag string,
 
 	data := b.makeTemplateData(tagPage, tagPosts, tags, siteDataJSON)
 
-	outPath := filepath.Join(b.outDir, "blog", "tags", tag, "index.html")
+	outPath := filepath.Join(b.outDir, b.cfg.Blog.PostsDir, "tags", tag, "index.html")
 	if err := os.MkdirAll(filepath.Dir(outPath), 0o755); err != nil {
 		return err
 	}

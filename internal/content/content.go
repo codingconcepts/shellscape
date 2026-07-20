@@ -113,7 +113,7 @@ func LoadPages(contentDir string, renderer *markdown.Renderer, blogDir string) (
 	return pages, nil
 }
 
-func LoadBlogPosts(blogDir string, renderer *markdown.Renderer, includeDrafts bool) ([]*Page, error) {
+func LoadBlogPosts(blogDir string, renderer *markdown.Renderer, includeDrafts bool, postsDir string) ([]*Page, error) {
 	if _, err := os.Stat(blogDir); os.IsNotExist(err) {
 		return nil, nil
 	}
@@ -139,7 +139,7 @@ func LoadBlogPosts(blogDir string, renderer *markdown.Renderer, includeDrafts bo
 			continue
 		}
 
-		page.URL = "/blog/" + page.Frontmatter.Slug
+		page.URL = "/" + postsDir + "/" + page.Frontmatter.Slug
 		page.Frontmatter.Template = "post"
 
 		posts = append(posts, page)
