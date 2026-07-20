@@ -30,9 +30,3 @@ The output is a plain static `dist/` directory. Deploy it to GitHub Pages, Cloud
 ### Source
 
 Shellscape is open source, written in Go, and built by [Rob Reid](https://github.com/codingconcepts). Contributions and issues welcome on [GitHub](https://github.com/codingconcepts/shellscape).
-
-### Try it
-
-- Type `cd docs/install` to get started
-- Type `ls docs` to see all documentation
-- Look for missing commands 
