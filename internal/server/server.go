@@ -120,7 +120,10 @@ func (s *Server) watch() {
 	for _, dir := range dirs {
 		_ = addRecursive(watcher, dir)
 	}
-	_ = watcher.Add(filepath.Join(s.siteDir, "config.yaml"))
+	// Watch the site dir rather than config.yaml itself: editors that save
+	// via atomic rename (e.g. VSCode) replace the file, which silently kills
+	// a direct file watch after the first save.
+	_ = watcher.Add(s.siteDir)
 
 	var debounce *time.Timer
 	for {
@@ -129,8 +132,21 @@ func (s *Server) watch() {
 			if !ok {
 				return
 			}
-			if event.Op&(fsnotify.Write|fsnotify.Create|fsnotify.Remove) == 0 {
+			if event.Op&(fsnotify.Write|fsnotify.Create|fsnotify.Remove|fsnotify.Rename) == 0 {
 				continue
+			}
+			// Events from the site dir watch: only config.yaml matters;
+			// ignore everything else (e.g. the output dir being rewritten,
+			// which would otherwise trigger a rebuild loop).
+			if filepath.Dir(event.Name) == s.siteDir && filepath.Base(event.Name) != "config.yaml" {
+				continue
+			}
+			// Watch newly created directories so files added to them later
+			// still trigger rebuilds.
+			if event.Op&fsnotify.Create != 0 {
+				if info, err := os.Stat(event.Name); err == nil && info.IsDir() {
+					_ = addRecursive(watcher, event.Name)
+				}
 			}
 			if debounce != nil {
 				debounce.Stop()

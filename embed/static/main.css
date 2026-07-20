@@ -509,6 +509,11 @@ a:hover {
   outline: none;
 }
 
+.terminal__input::placeholder {
+  color: var(--ss-text-muted);
+  opacity: 0.5;
+}
+
 /* ── Selection ────────────────────────────────────────── */
 
 ::selection {

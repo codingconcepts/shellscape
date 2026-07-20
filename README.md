@@ -213,7 +213,7 @@ The included workflow at `.github/workflows/deploy.yml` automatically builds and
    | Secret | `CLOUDFLARE_ACCOUNT_ID` | Your account ID (found in the dashboard sidebar) |
    | Variable | `CLOUDFLARE_PROJECT_NAME` | Your Pages project name |
 
-4. Push to `main` — the workflow builds shellscape from source, generates your site, and deploys it
+4. Push to `main` - the workflow builds shellscape from source, generates your site, and deploys it
 
 ## Available Fonts
 

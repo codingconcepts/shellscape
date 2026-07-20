@@ -78,7 +78,7 @@ shellscape build
 | `--config`, `-c` | `config.yaml` | Path to config file |
 | `--drafts` | `false` | Include draft posts |
 
-Output goes to `dist/`. Deploy that directory anywhere — GitHub Pages, Cloudflare Pages, Netlify, S3, or any static file server.
+Output goes to `dist/`. Deploy that directory anywhere - GitHub Pages, Cloudflare Pages, Netlify, S3, or any static file server.
 
 ### Terminal commands
 

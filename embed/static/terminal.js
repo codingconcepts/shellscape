@@ -178,7 +178,14 @@
       return false;
     }
 
-    currentPath = path;
+    var isDir = !page || entries.length > 0;
+    if (isDir) {
+      currentPath = path;
+    } else {
+      var parts = path.split('/').filter(Boolean);
+      parts.pop();
+      currentPath = parts.length ? '/' + parts.join('/') : '/';
+    }
     updatePromptPath();
     updateActiveNav();
 
@@ -186,7 +193,7 @@
       window.history.pushState({ path: path }, '', path === '/' ? '/' : path);
     }
 
-    return true;
+    return path;
   }
 
   function updateActiveNav() {
@@ -276,16 +283,17 @@
 
     cd: function (args) {
       if (!args || args.length === 0) {
-        navigateTo('/');
-        showPageContent();
+        var p = navigateTo('/');
+        showPageContent(p);
         return;
       }
 
       var target = args[0];
       var resolved = resolvePath(target);
 
-      if (navigateTo(resolved)) {
-        showPageContent();
+      var p = navigateTo(resolved);
+      if (p) {
+        showPageContent(p);
       } else {
         appendOutput('cd: no such directory: ' + escapeHtml(target), 'error');
       }
@@ -341,8 +349,8 @@
         return;
       }
 
-      navigateTo(resolved);
-      showPageContent();
+      var p = navigateTo(resolved);
+      showPageContent(p);
     },
 
     clear: function () {
@@ -377,8 +385,8 @@
     }
   };
 
-  function showPageContent() {
-    var page = findPage(currentPath);
+  function showPageContent(pagePath) {
+    var page = findPage(pagePath || currentPath);
     if (page) {
       var content = document.createElement('div');
       content.className = 'content';
@@ -390,7 +398,7 @@
       commands.ls();
     }
     showWelcome();
-    scrollToBottom();
+    output.scrollTop = 0;
   }
 
   function executeCommand(cmdStr) {
@@ -496,6 +504,16 @@
     }
   });
 
+  // Focus input on "/" key press
+  document.addEventListener('keydown', function (e) {
+    if (e.key === '/' && document.activeElement !== input) {
+      e.preventDefault();
+      if (document.activeElement) document.activeElement.blur();
+      input.focus();
+      input.scrollIntoView({ block: 'nearest' });
+    }
+  });
+
   // ── Nav link clicks ──
 
   document.addEventListener('click', function (e) {
@@ -503,8 +521,9 @@
     if (link) {
       e.preventDefault();
       var path = link.getAttribute('data-path');
-      if (navigateTo(path)) {
-        showPageContent();
+      var p = navigateTo(path);
+      if (p) {
+        showPageContent(p);
       }
     }
 
@@ -513,8 +532,9 @@
     if (navLink) {
       e.preventDefault();
       var navPath = navLink.getAttribute('data-nav');
-      if (navigateTo(navPath)) {
-        showPageContent();
+      var p = navigateTo(navPath);
+      if (p) {
+        showPageContent(p);
       }
     }
   });
@@ -523,10 +543,8 @@
 
   window.addEventListener('popstate', function (e) {
     if (e.state && e.state.path) {
-      currentPath = e.state.path;
-      updatePromptPath();
-      updateActiveNav();
-      showPageContent();
+      var p = navigateTo(e.state.path, false);
+      if (p) showPageContent(p);
     }
   });
 

@@ -92,9 +92,9 @@ func (b *Builder) Build() (*BuildResult, error) {
 		return nil, fmt.Errorf("loading posts: %w", err)
 	}
 
-	for _, post := range posts {
-		if b := post.Frontmatter.Banner; b != nil && b.Text != "" {
-			post.BannerHTML = template.HTML(banner.Render(b.Text, b.Font, b.Colors, b.ColorType))
+	for _, p := range append(pages, posts...) {
+		if b := p.Frontmatter.Banner; b != nil && b.Text != "" {
+			p.BannerHTML = template.HTML(banner.Render(b.Text, b.Font, b.Colors, b.ColorType))
 		}
 	}
 

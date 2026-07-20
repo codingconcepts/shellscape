@@ -2,6 +2,9 @@
 
 {{ define "content" }}
 <div class="content" id="page-content" data-template="page">
+  {{ if .Page.BannerHTML }}
+  <pre class="post-banner">{{ .Page.BannerHTML }}</pre>
+  {{ end }}
   {{ .Page.HTMLContent }}
 </div>
 {{ end }}

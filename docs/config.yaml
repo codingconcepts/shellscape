@@ -10,18 +10,16 @@ theme: "terminal"
 nav:
   - label: "Home"
     path: "/"
-  - label: "Install"
-    path: "/docs/install"
-  - label: "Get Started"
-    path: "/docs/getting-started"
-  - label: "Configuration"
-    path: "/docs/configuration"
+  - label: "About"
+    path: "/about"
+  - label: "Docs"
+    path: "/docs"
 
 terminal:
   prompt: ""
   banner:
-    text: "shellscape"
-    font: colossal
+    text: "s h e l l s c a p e"
+    font: univers
     color_type: "gradient-lr"
 
 blog:

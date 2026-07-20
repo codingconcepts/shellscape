@@ -3,6 +3,7 @@ package markdown
 import (
 	"bytes"
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/alecthomas/chroma/v2"
@@ -35,9 +36,9 @@ func CodeThemeCSS(darkStyle, lightStyle string) ([]byte, error) {
 
 	var out bytes.Buffer
 	out.WriteString("/* Code highlighting: dark */\n")
-	out.Write(darkBuf.Bytes())
+	out.WriteString(stripBgColors(darkBuf.String()))
 	out.WriteString("\n/* Code highlighting: light */\n")
-	out.WriteString(scopeCSS(lightBuf.String(), "[data-code-theme=\"light\"]"))
+	out.WriteString(scopeCSS(stripBgColors(lightBuf.String()), "[data-code-theme=\"light\"]"))
 
 	return out.Bytes(), nil
 }
@@ -46,24 +47,31 @@ func scopeCSS(css, scope string) string {
 	var out strings.Builder
 	for line := range strings.SplitSeq(css, "\n") {
 		trimmed := strings.TrimSpace(line)
-		if trimmed == "" || strings.HasPrefix(trimmed, "/*") {
-			out.WriteString(line)
-			out.WriteByte('\n')
-			continue
+
+		// Chroma emits each rule as "/* TokenName */ selector { ... }" on a
+		// single line, so peel off a leading comment before deciding whether
+		// the line contains a rule that needs scoping.
+		prefix := ""
+		if strings.HasPrefix(trimmed, "/*") {
+			if end := strings.Index(trimmed, "*/"); end != -1 {
+				prefix = trimmed[:end+2] + " "
+				trimmed = strings.TrimSpace(trimmed[end+2:])
+			}
 		}
-		if strings.HasPrefix(trimmed, "}") {
+		if trimmed == "" || strings.HasPrefix(trimmed, "/*") || strings.HasPrefix(trimmed, "}") {
 			out.WriteString(line)
 			out.WriteByte('\n')
 			continue
 		}
 		if strings.Contains(trimmed, "{") {
-			selector := strings.TrimSpace(strings.SplitN(trimmed, "{", 2)[0])
-			rest := "{" + strings.SplitN(trimmed, "{", 2)[1]
+			parts := strings.SplitN(trimmed, "{", 2)
+			selector := strings.TrimSpace(parts[0])
+			out.WriteString(prefix)
 			out.WriteString(scope)
 			out.WriteString(" ")
 			out.WriteString(selector)
-			out.WriteString(" ")
-			out.WriteString(rest)
+			out.WriteString(" {")
+			out.WriteString(parts[1])
 			out.WriteByte('\n')
 			continue
 		}
@@ -71,6 +79,11 @@ func scopeCSS(css, scope string) string {
 		out.WriteByte('\n')
 	}
 	return out.String()
+}
+
+func stripBgColors(css string) string {
+	re := regexp.MustCompile(`\s*background(?:-color)?\s*:\s*[^;]+;?`)
+	return re.ReplaceAllString(css, "")
 }
 
 func resolveStyle(name string) (*chroma.Style, error) {

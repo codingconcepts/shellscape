@@ -35,7 +35,13 @@ func runServe(cmd *cobra.Command, args []string) error {
 
 	siteDir := filepath.Dir(configPath)
 
+	// Reload config on every build so edits to config.yaml are picked up
+	// by the watcher-triggered rebuilds, not just the initial one.
 	buildFn := func() error {
+		cfg, err := config.Load(configPath)
+		if err != nil {
+			return err
+		}
 		b, err := builder.New(cfg, siteDir, content.FS, drafts)
 		if err != nil {
 			return err
