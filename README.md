@@ -230,6 +230,8 @@ For an example of each (using the text "Shellscape"), see [example fonts](./exam
 
 ## Todos
 
+* All text to be copied (can't currently focus)
+
 * Display directories in tree format:
 ```
 blog/

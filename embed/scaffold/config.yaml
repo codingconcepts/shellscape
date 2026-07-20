@@ -17,6 +17,7 @@ nav:
 
 terminal:
   prompt: ""
+  # whoami: "Your Name — a short bio or description"
   banner:
     text: "my site"
     # font: "slant"       # default; try: big, standard, small, banner3, 3-d, colossal, larry3d

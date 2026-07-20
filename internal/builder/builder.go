@@ -105,6 +105,10 @@ func (b *Builder) Build() (*BuildResult, error) {
 		return nil, fmt.Errorf("building site data: %w", err)
 	}
 
+	if err := b.writeFindIndex(pages, posts); err != nil {
+		return nil, fmt.Errorf("writing find index: %w", err)
+	}
+
 	for _, page := range pages {
 		if err := b.renderPage(tmpls, page, posts, tags, siteDataJSON); err != nil {
 			return nil, fmt.Errorf("rendering %s: %w", page.URL, err)
@@ -256,6 +260,48 @@ func (b *Builder) writeTheme() error {
 	return nil
 }
 
+func (b *Builder) writeFindIndex(pages, posts []*content.Page) error {
+	type findEntry struct {
+		Title   string `json:"title"`
+		URL     string `json:"url"`
+		Content string `json:"content"`
+	}
+
+	index := make(map[string]findEntry)
+	for _, p := range append(pages, posts...) {
+		if p.URL == "/" {
+			continue
+		}
+
+		var buf strings.Builder
+		for _, line := range strings.Split(p.RawContent, "\n") {
+			line = strings.TrimSpace(line)
+			if line == "" {
+				continue
+			}
+			line = strings.TrimLeft(line, "#")
+			line = strings.TrimSpace(line)
+			if line != "" {
+				buf.WriteString(line)
+				buf.WriteString(" ")
+			}
+		}
+
+		index[p.URL] = findEntry{
+			Title:   p.Frontmatter.Title,
+			URL:     p.URL,
+			Content: strings.ToLower(strings.TrimSpace(buf.String())),
+		}
+	}
+
+	data, err := json.Marshal(index)
+	if err != nil {
+		return fmt.Errorf("marshalling find index: %w", err)
+	}
+
+	return os.WriteFile(filepath.Join(b.outDir, "find.json"), data, 0o644)
+}
+
 func (b *Builder) buildSiteDataJSON(pages []*content.Page, posts []*content.Page, tags map[string][]*content.Page) (template.JS, error) {
 	siteData := map[string]any{
 		"site": map[string]any{
@@ -265,6 +311,7 @@ func (b *Builder) buildSiteDataJSON(pages []*content.Page, posts []*content.Page
 		},
 		"terminal": map[string]any{
 			"prompt":     b.cfg.Terminal.Prompt,
+			"whoami":     b.cfg.Terminal.WhoAmI,
 			"asciiArt":   b.cfg.Terminal.ASCIIArt,
 			"bannerHTML": banner.Render(b.cfg.Terminal.Banner.Text, b.cfg.Terminal.Banner.Font, b.cfg.Terminal.Banner.Colors, b.cfg.Terminal.Banner.ColorType),
 		},

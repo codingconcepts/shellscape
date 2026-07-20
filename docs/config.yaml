@@ -17,6 +17,7 @@ nav:
 
 terminal:
   prompt: ""
+  whoami: "Shellscape - by Rob Reid"
   banner:
     text: "s h e l l s c a p e"
     font: univers

@@ -12,6 +12,8 @@
   var history = JSON.parse(localStorage.getItem('ss_history') || '[]');
   var historyIndex = -1;
   var initialContent = output.innerHTML;
+  var findIndex = null;
+  var suppressScroll = false;
 
   function scrollToBottom() {
     output.scrollTop = output.scrollHeight;
@@ -157,6 +159,8 @@
       return '/' + parts.join('/') || '/';
     }
 
+    if (target === '.') return currentPath;
+
     if (target === '~' || target === '/') return '/';
 
     if (target.charAt(0) === '/') return target;
@@ -217,14 +221,17 @@
       var lines = [
         '<span style="color:var(--ss-accent)">Available commands:</span>',
         '',
-        '  <span style="color:var(--ss-green)">ls</span> [dir]         List pages at current or given location',
-        '  <span style="color:var(--ss-green)">cd</span> &lt;page&gt;       Navigate to a page',
-        '  <span style="color:var(--ss-green)">cd ..</span>            Go up one level',
-        '  <span style="color:var(--ss-green)">cat</span> &lt;page&gt;      Display page content',
-        '  <span style="color:var(--ss-green)">open</span> &lt;page&gt;     Navigate to and display a page',
-        '  <span style="color:var(--ss-green)">clear</span>            Clear the terminal',
-        '  <span style="color:var(--ss-green)">history</span>          Show command history',
-        '  <span style="color:var(--ss-green)">theme</span> &lt;name&gt;    Switch theme (terminal, light)',
+        '  <span style="color:var(--ss-green)">ls</span> [dir]       List pages at current or given location',
+        '  <span style="color:var(--ss-green)">cd</span> &lt;page&gt;      Navigate to a page',
+        '  <span style="color:var(--ss-green)">open</span> &lt;page&gt;    Navigate to and display a page',
+        '  <span style="color:var(--ss-green)">find</span> &lt;query&gt;   Search pages by title, path, or content',
+        '  <span style="color:var(--ss-green)">tree</span> [dir]     Show site hierarchy',
+        '  <span style="color:var(--ss-green)">pwd</span>            Print current path',
+        '  <span style="color:var(--ss-green)">whoami</span>         Display site author info',
+        '  <span style="color:var(--ss-green)">date</span>           Show current date and time',
+        '  <span style="color:var(--ss-green)">clear</span>          Clear the terminal',
+        '  <span style="color:var(--ss-green)">history</span>        Show command history',
+        '  <span style="color:var(--ss-green)">theme</span> &lt;name&gt;   Switch theme (system, light, dark)',
         '',
         'You can also click any link to navigate.',
       ];
@@ -299,27 +306,6 @@
       }
     },
 
-    cat: function (args) {
-      if (!args || args.length === 0) {
-        appendOutput('cat: missing file operand', 'error');
-        return;
-      }
-
-      var target = args[0];
-      var resolved = resolvePath(target);
-      var page = findPage(resolved);
-
-      if (!page) {
-        appendOutput('cat: ' + escapeHtml(target) + ': No such file', 'error');
-        return;
-      }
-
-      var content = document.createElement('div');
-      content.className = 'content';
-      content.innerHTML = buildPageHTML(page);
-      appendRaw(content);
-    },
-
     open: function (args) {
       if (!args || args.length === 0) {
         appendOutput('open: missing file operand', 'error');
@@ -382,11 +368,121 @@
         appendOutput('theme: unknown theme: ' + escapeHtml(name), 'error');
         appendOutput('Available: system, light, dark', 'system');
       }
+    },
+
+    pwd: function () {
+      appendOutput('~' + currentPath);
+    },
+
+    date: function () {
+      appendOutput(new Date().toString());
+    },
+
+    whoami: function () {
+      var info = SITE.terminal.whoami;
+      if (info) {
+        appendOutput(info);
+      } else {
+        appendOutput('whoami: not configured', 'system');
+      }
+    },
+
+    find: function (args) {
+      var query = (args && args.length > 0) ? args.join(' ').toLowerCase() : '';
+      if (!query) {
+        appendOutput('Usage: find &lt;query&gt;', 'system');
+        return;
+      }
+
+      function doSearch(index) {
+        var titleHits = [];
+        var contentHits = [];
+        for (var url in index) {
+          if (!index.hasOwnProperty(url)) continue;
+          var entry = index[url];
+          var title = (entry.title || '').toLowerCase();
+          var content = entry.content || '';
+          if (title.indexOf(query) !== -1 || url.toLowerCase().indexOf(query) !== -1) {
+            titleHits.push(entry);
+          } else if (content.indexOf(query) !== -1) {
+            var idx = content.indexOf(query);
+            var start = Math.max(0, idx - 40);
+            var end = Math.min(content.length, idx + query.length + 40);
+            var snippet = (start > 0 ? '...' : '') +
+              content.substring(start, end) +
+              (end < content.length ? '...' : '');
+            contentHits.push({ url: entry.url, title: entry.title, snippet: snippet });
+          }
+        }
+
+        if (titleHits.length === 0 && contentHits.length === 0) {
+          appendOutput('No results for \'' + escapeHtml(args.join(' ')) + '\'', 'system');
+          return;
+        }
+
+        for (var i = 0; i < titleHits.length; i++) {
+          var r = titleHits[i];
+          var link = '<a href="' + r.url + '" data-nav="' + r.url + '" style="color:var(--ss-green);cursor:pointer">' + escapeHtml(r.url) + '</a>';
+          appendOutput('  ' + link + '  ' + escapeHtml(r.title));
+        }
+        for (var j = 0; j < contentHits.length; j++) {
+          var c = contentHits[j];
+          var cLink = '<a href="' + c.url + '" data-nav="' + c.url + '" style="color:var(--ss-green);cursor:pointer">' + escapeHtml(c.url) + '</a>';
+          appendOutput('  ' + cLink + '  ' + escapeHtml(c.title));
+          appendOutput('    <span style="color:var(--ss-dim)">' + escapeHtml(c.snippet) + '</span>');
+        }
+      }
+
+      if (findIndex) {
+        doSearch(findIndex);
+      } else {
+        fetch('/find.json')
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            findIndex = data;
+            doSearch(data);
+          })
+          .catch(function () {
+            appendOutput('find: failed to load search index', 'error');
+          });
+      }
+    },
+
+    tree: function (args) {
+      var root = currentPath;
+      if (args && args.length > 0) {
+        root = resolvePath(args[0]);
+        var entries = getNavEntries(root);
+        if (entries.length === 0 && !findPage(root)) {
+          appendOutput('tree: \'' + escapeHtml(args[0]) + '\': No such directory', 'error');
+          return;
+        }
+      }
+
+      function buildTree(path, prefix) {
+        var entries = getNavEntries(path);
+        for (var i = 0; i < entries.length; i++) {
+          var entry = entries[i];
+          var isLast = i === entries.length - 1;
+          var connector = isLast ? '└── ' : '├── ';
+          var color = entry.type === 'dir' ? 'var(--ss-blue)' : 'var(--ss-green)';
+          var display = entry.type === 'dir' ? entry.name + '/' : entry.name;
+          appendOutput(prefix + connector + '<span style="color:' + color + '">' + escapeHtml(display) + '</span>');
+          if (entry.type === 'dir') {
+            var childPrefix = prefix + (isLast ? '    ' : '│   ');
+            buildTree(entry.url, childPrefix);
+          }
+        }
+      }
+
+      appendOutput('<span style="color:var(--ss-blue)">.</span>');
+      buildTree(root, '');
     }
   };
 
   function showPageContent(pagePath) {
-    var page = findPage(pagePath || currentPath);
+    var resolvedPath = pagePath || currentPath;
+    var page = findPage(resolvedPath);
     if (page) {
       var content = document.createElement('div');
       content.className = 'content';
@@ -397,8 +493,9 @@
       output.innerHTML = '';
       commands.ls();
     }
-    showWelcome();
+    if (resolvedPath === '/') showWelcome();
     output.scrollTop = 0;
+    suppressScroll = true;
   }
 
   function executeCommand(cmdStr) {
@@ -421,7 +518,11 @@
       appendOutput('command not found: ' + escapeHtml(cmd) + '. Type <span style="color:var(--ss-green)">help</span> for available commands.', 'error');
     }
 
-    scrollToBottom();
+    if (suppressScroll) {
+      suppressScroll = false;
+    } else {
+      scrollToBottom();
+    }
   }
 
   // ── Tab completion ──
