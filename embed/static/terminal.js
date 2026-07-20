@@ -263,6 +263,13 @@
         grid.appendChild(item);
       }
 
+      var maxLen = 0;
+      for (var j = 0; j < entries.length; j++) {
+        var nameLen = entries[j].name.length + (entries[j].type === 'dir' ? 1 : 0);
+        if (nameLen > maxLen) maxLen = nameLen;
+      }
+      grid.style.setProperty('--ls-col-width', (maxLen + 2) + 'ch');
+
       appendRaw(grid);
     },
 

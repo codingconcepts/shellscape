@@ -195,6 +195,26 @@ The `dist/` directory is fully static - deploy it anywhere:
 - S3 + CloudFront
 - Any static file server
 
+### Cloudflare Pages (GitHub Actions)
+
+The included workflow at `.github/workflows/deploy.yml` automatically builds and deploys to Cloudflare Pages on every push to `main`.
+
+**Setup:**
+
+1. Create a Cloudflare Pages project (in the dashboard under **Workers & Pages > Create > Pages > Direct Upload**)
+
+2. Create a [Cloudflare API token](https://dash.cloudflare.com/profile/api-tokens) with **Cloudflare Pages: Edit** permission
+
+3. Add secrets and variables to your GitHub repo under **Settings > Secrets and variables > Actions**:
+
+   | Type | Name | Value |
+   |------|------|-------|
+   | Secret | `CLOUDFLARE_API_TOKEN` | Your API token |
+   | Secret | `CLOUDFLARE_ACCOUNT_ID` | Your account ID (found in the dashboard sidebar) |
+   | Variable | `CLOUDFLARE_PROJECT_NAME` | Your Pages project name |
+
+4. Push to `main` — the workflow builds shellscape from source, generates your site, and deploys it
+
 ## Available Fonts
 
 168 fonts are available via the [go-figure](https://github.com/common-nighthawk/go-figure) library. Set the font in your config:

@@ -30,3 +30,6 @@ mysite/
 
 # Binary
 shellscape
+
+# Wrangler
+.wrangler/
