@@ -298,6 +298,11 @@
       var target = args[0];
       var resolved = resolvePath(target);
 
+      if (resolved === currentPath) {
+        showPageContent(resolved);
+        return;
+      }
+
       var p = navigateTo(resolved);
       if (p) {
         showPageContent(p);
