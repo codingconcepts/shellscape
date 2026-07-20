@@ -29,7 +29,7 @@ dist/
 mysite/
 
 # Binary
-shellscape
+/shellscape
 
 # Wrangler
 .wrangler/
