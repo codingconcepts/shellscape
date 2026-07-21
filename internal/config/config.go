@@ -33,6 +33,7 @@ type NavItem struct {
 type TerminalConfig struct {
 	Prompt   string       `yaml:"prompt"`
 	WhoAmI   string       `yaml:"whoami"`
+	Hint     string       `yaml:"hint"`
 	ASCIIArt string       `yaml:"ascii_art"`
 	Banner   BannerConfig `yaml:"banner"`
 }

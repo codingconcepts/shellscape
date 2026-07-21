@@ -170,7 +170,7 @@ func (s *Server) watchFiles() {
 				if rel == "" {
 					rel = trigger
 				}
-				log.Printf("Changed: %s — rebuilding...", rel)
+				log.Printf("Changed: %s - rebuilding...", rel)
 				if err := s.buildFn(); err != nil {
 					log.Printf("Build error: %v", err)
 					return

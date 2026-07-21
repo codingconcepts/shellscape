@@ -641,18 +641,21 @@
           container.appendChild(line);
         }
       }
-      var spacer = document.createElement("div");
-      spacer.className = "terminal__line";
-      spacer.innerHTML = "&nbsp;";
-      container.appendChild(spacer);
-      var hint = document.createElement("div");
-      hint.className = "terminal__line terminal__line--system";
-      hint.textContent = "Type help for available commands, or click around to navigate.";
-      container.appendChild(hint);
-      var spacer2 = document.createElement("div");
-      spacer2.className = "terminal__line";
-      spacer2.innerHTML = "&nbsp;";
-      container.appendChild(spacer2);
+      var hintText = SITE.terminal.hint;
+      if (hintText) {
+        var spacer = document.createElement("div");
+        spacer.className = "terminal__line";
+        spacer.innerHTML = "&nbsp;";
+        container.appendChild(spacer);
+        var hint = document.createElement("div");
+        hint.className = "terminal__line terminal__line--system";
+        hint.textContent = hintText;
+        container.appendChild(hint);
+        var spacer2 = document.createElement("div");
+        spacer2.className = "terminal__line";
+        spacer2.innerHTML = "&nbsp;";
+        container.appendChild(spacer2);
+      }
       output.insertBefore(container, output.firstChild);
       scrollToBottom();
     }

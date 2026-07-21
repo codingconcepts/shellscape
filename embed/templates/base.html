@@ -37,7 +37,10 @@
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
         </button>
       </div>
-      <nav class="terminal__nav">
+      <button class="terminal__burger" id="nav-burger" aria-label="Menu" aria-expanded="false">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <nav class="terminal__nav" id="terminal-nav">
         {{ range .Nav }}
         <a href="{{ .Path }}" class="terminal__nav-link{{ if .IsActive }} terminal__nav-link--active{{ end }}" data-path="{{ .Path }}">{{ .Label }}</a>
         {{ end }}
@@ -60,5 +63,21 @@
   <script>window.__SITE_DATA__ = {{ .SiteDataJSON }};</script>
   <script>window.__CURRENT_PATH__ = "{{ .CurrentPath }}";</script>
   <script src="/terminal.js"></script>
+  <script>
+    (function() {
+      var btn = document.getElementById('nav-burger');
+      var nav = document.getElementById('terminal-nav');
+      if (!btn || !nav) return;
+      btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        var open = nav.classList.toggle('terminal__nav--open');
+        btn.setAttribute('aria-expanded', open);
+      });
+      document.addEventListener('click', function() {
+        nav.classList.remove('terminal__nav--open');
+        btn.setAttribute('aria-expanded', 'false');
+      });
+    })();
+  </script>
 </body>
 </html>

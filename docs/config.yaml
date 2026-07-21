@@ -17,6 +17,7 @@ nav:
 
 terminal:
   prompt: ""
+  hint: "Type help for available commands, or click around to navigate."
   whoami: "Shellscape - by Rob Reid"
   banner:
     text: "s h e l l s c a p e"

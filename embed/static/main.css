@@ -97,6 +97,25 @@ a:hover {
   pointer-events: none;
 }
 
+.terminal__burger {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 24px;
+  border: none;
+  border-radius: 4px;
+  background: none;
+  color: var(--ss-text-muted);
+  cursor: pointer;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+
+.terminal__burger:hover {
+  color: var(--ss-text);
+}
+
 .terminal__nav {
   display: flex;
   gap: 4px;
@@ -489,9 +508,32 @@ a:hover {
 
 /* ── Responsive ───────────────────────────────────────── */
 
-@media (max-width: 768px) {
+@media (max-width: 480px) {
+  .terminal__burger {
+    display: flex;
+  }
+
   .terminal__nav {
     display: none;
+    position: absolute;
+    top: 100%;
+    right: 0;
+    flex-direction: column;
+    background: var(--ss-chrome-bg);
+    border: 1px solid var(--ss-chrome-border);
+    border-top: none;
+    border-radius: 0 0 6px 6px;
+    padding: 4px;
+    z-index: 100;
+    min-width: 120px;
+  }
+
+  .terminal__nav--open {
+    display: flex;
+  }
+
+  .terminal__nav-link {
+    padding: 6px 12px;
   }
 
   .post-item__header {

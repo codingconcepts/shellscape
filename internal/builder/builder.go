@@ -376,6 +376,7 @@ func (b *Builder) buildSiteDataJSON(pages []*content.Page, posts []*content.Page
 		"terminal": map[string]any{
 			"prompt":     b.cfg.Terminal.Prompt,
 			"whoami":     b.cfg.Terminal.WhoAmI,
+			"hint":       b.cfg.Terminal.Hint,
 			"asciiArt":   b.cfg.Terminal.ASCIIArt,
 			"bannerHTML": banner.Render(b.cfg.Terminal.Banner.Text, b.cfg.Terminal.Banner.Font, b.cfg.Terminal.Banner.Colors, b.cfg.Terminal.Banner.ColorType),
 		},

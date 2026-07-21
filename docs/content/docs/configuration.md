@@ -33,6 +33,7 @@ nav:
     path: "/blog"
 
 terminal:
+  hint: "Type help for available commands, or click around to navigate."
   banner:
     text: "Shellscape"
     font: "banner3"
