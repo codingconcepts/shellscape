@@ -5,9 +5,13 @@ import (
 	"fmt"
 	"html/template"
 	"io/fs"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
+
+	"golang.org/x/sync/errgroup"
 
 	"github.com/codingconcepts/shellscape/internal/banner"
 	"github.com/codingconcepts/shellscape/internal/config"
@@ -62,35 +66,71 @@ func New(cfg *config.Config, siteDir string, embedFS fs.FS, drafts bool) (*Build
 }
 
 func (b *Builder) Build() (*BuildResult, error) {
+	buildStart := time.Now()
+
+	start := time.Now()
 	if err := os.RemoveAll(b.outDir); err != nil {
 		return nil, fmt.Errorf("cleaning output: %w", err)
 	}
+	if err := os.MkdirAll(b.outDir, 0o755); err != nil {
+		return nil, fmt.Errorf("creating output dir: %w", err)
+	}
+	slog.Info("clean", "duration", time.Since(start))
 
+	start = time.Now()
 	tmpls, err := b.loadTemplates()
 	if err != nil {
 		return nil, fmt.Errorf("loading templates: %w", err)
 	}
+	slog.Info("templates", "duration", time.Since(start))
 
-	if err := b.copyStaticAssets(); err != nil {
-		return nil, fmt.Errorf("copying static assets: %w", err)
+	// Group A: static assets + theme in parallel
+	start = time.Now()
+	var ga errgroup.Group
+	ga.Go(func() error {
+		if err := b.copyStaticAssets(); err != nil {
+			return fmt.Errorf("copying static assets: %w", err)
+		}
+		return nil
+	})
+	ga.Go(func() error {
+		if err := b.writeTheme(); err != nil {
+			return fmt.Errorf("writing theme: %w", err)
+		}
+		return nil
+	})
+	if err := ga.Wait(); err != nil {
+		return nil, err
 	}
+	slog.Info("assets+theme", "duration", time.Since(start))
 
-	if err := b.writeTheme(); err != nil {
-		return nil, fmt.Errorf("writing theme: %w", err)
-	}
-
+	// Group B: load pages + posts in parallel
+	start = time.Now()
 	contentDir := filepath.Join(b.siteDir, "content")
 	blogDir := filepath.Join(contentDir, b.cfg.Blog.PostsDir)
 
-	pages, err := content.LoadPages(contentDir, b.renderer, b.cfg.Blog.PostsDir)
-	if err != nil {
-		return nil, fmt.Errorf("loading pages: %w", err)
+	var pages, posts []*content.Page
+	var gb errgroup.Group
+	gb.Go(func() error {
+		var err error
+		pages, err = content.LoadPages(contentDir, b.renderer, b.cfg.Blog.PostsDir)
+		if err != nil {
+			return fmt.Errorf("loading pages: %w", err)
+		}
+		return nil
+	})
+	gb.Go(func() error {
+		var err error
+		posts, err = content.LoadBlogPosts(blogDir, b.renderer, b.drafts, b.cfg.Blog.PostsDir)
+		if err != nil {
+			return fmt.Errorf("loading posts: %w", err)
+		}
+		return nil
+	})
+	if err := gb.Wait(); err != nil {
+		return nil, err
 	}
-
-	posts, err := content.LoadBlogPosts(blogDir, b.renderer, b.drafts, b.cfg.Blog.PostsDir)
-	if err != nil {
-		return nil, fmt.Errorf("loading posts: %w", err)
-	}
+	slog.Info("content", "pages", len(pages), "posts", len(posts), "duration", time.Since(start))
 
 	for _, p := range append(pages, posts...) {
 		if b := p.Frontmatter.Banner; b != nil && b.Text != "" {
@@ -100,6 +140,7 @@ func (b *Builder) Build() (*BuildResult, error) {
 
 	tags := content.CollectTags(posts)
 
+	start = time.Now()
 	siteDataJSON, err := b.buildSiteDataJSON(pages, posts, tags)
 	if err != nil {
 		return nil, fmt.Errorf("building site data: %w", err)
@@ -108,28 +149,51 @@ func (b *Builder) Build() (*BuildResult, error) {
 	if err := b.writeFindIndex(pages, posts); err != nil {
 		return nil, fmt.Errorf("writing find index: %w", err)
 	}
+	slog.Info("site data", "duration", time.Since(start))
 
+	// Group C: render all pages, posts, tags in parallel
+	start = time.Now()
+	var gc errgroup.Group
 	for _, page := range pages {
-		if err := b.renderPage(tmpls, page, posts, tags, siteDataJSON); err != nil {
-			return nil, fmt.Errorf("rendering %s: %w", page.URL, err)
+		gc.Go(func() error {
+			if err := b.renderPage(tmpls, page, posts, tags, siteDataJSON); err != nil {
+				return fmt.Errorf("rendering %s: %w", page.URL, err)
+			}
+			slog.Info("rendered", "page", page.URL)
+			return nil
+		})
+	}
+	gc.Go(func() error {
+		if err := b.renderBlogList(tmpls, posts, tags, siteDataJSON); err != nil {
+			return fmt.Errorf("rendering blog list: %w", err)
 		}
-	}
-
-	if err := b.renderBlogList(tmpls, posts, tags, siteDataJSON); err != nil {
-		return nil, fmt.Errorf("rendering blog list: %w", err)
-	}
-
+		slog.Info("rendered", "page", "/"+b.cfg.Blog.PostsDir)
+		return nil
+	})
 	for _, post := range posts {
-		if err := b.renderPage(tmpls, post, posts, tags, siteDataJSON); err != nil {
-			return nil, fmt.Errorf("rendering post %s: %w", post.URL, err)
-		}
+		gc.Go(func() error {
+			if err := b.renderPage(tmpls, post, posts, tags, siteDataJSON); err != nil {
+				return fmt.Errorf("rendering post %s: %w", post.URL, err)
+			}
+			slog.Info("rendered", "post", post.URL)
+			return nil
+		})
 	}
-
 	for tag, tagPosts := range tags {
-		if err := b.renderTagPage(tmpls, tag, tagPosts, posts, tags, siteDataJSON); err != nil {
-			return nil, fmt.Errorf("rendering tag %s: %w", tag, err)
-		}
+		gc.Go(func() error {
+			if err := b.renderTagPage(tmpls, tag, tagPosts, posts, tags, siteDataJSON); err != nil {
+				return fmt.Errorf("rendering tag %s: %w", tag, err)
+			}
+			slog.Info("rendered", "tag", tag)
+			return nil
+		})
 	}
+	if err := gc.Wait(); err != nil {
+		return nil, err
+	}
+	slog.Info("render", "duration", time.Since(start))
+
+	slog.Info("build complete", "duration", time.Since(buildStart))
 
 	return &BuildResult{
 		Pages: len(pages),

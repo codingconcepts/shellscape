@@ -19,12 +19,16 @@ var serveCmd = &cobra.Command{
 	RunE:  runServe,
 }
 
-var servePort int
+var (
+	servePort int
+	watch     bool
+)
 
 func init() {
 	serveCmd.Flags().IntVarP(&servePort, "port", "p", 1313, "port to serve on")
 	serveCmd.Flags().StringVarP(&configPath, "config", "c", "config.yaml", "path to config file")
 	serveCmd.Flags().BoolVar(&drafts, "drafts", false, "include draft posts")
+	serveCmd.Flags().BoolVar(&watch, "watch", false, "watch for file changes and live reload")
 }
 
 func runServe(cmd *cobra.Command, args []string) error {
@@ -55,7 +59,7 @@ func runServe(cmd *cobra.Command, args []string) error {
 	}
 
 	addr := fmt.Sprintf(":%d", servePort)
-	srv := server.New(addr, siteDir, cfg.Build.OutputDir, buildFn)
+	srv := server.New(addr, siteDir, cfg.Build.OutputDir, buildFn, watch)
 
 	fmt.Printf("✔ Serving at http://localhost:%d (press Ctrl+C to stop)\n", servePort)
 	return srv.ListenAndServe()

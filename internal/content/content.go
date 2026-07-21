@@ -8,9 +8,11 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+	"sync"
 	"time"
 	"unicode/utf8"
 
+	"golang.org/x/sync/errgroup"
 	"gopkg.in/yaml.v3"
 
 	"github.com/codingconcepts/shellscape/internal/markdown"
@@ -74,40 +76,51 @@ func LoadPage(filePath string, renderer *markdown.Renderer) (*Page, error) {
 }
 
 func LoadPages(contentDir string, renderer *markdown.Renderer, blogDir string) ([]*Page, error) {
-	var pages []*Page
-
 	entries, err := os.ReadDir(contentDir)
 	if err != nil {
 		return nil, fmt.Errorf("reading content dir: %w", err)
 	}
 
+	var (
+		mu    sync.Mutex
+		pages []*Page
+		g     errgroup.Group
+	)
+
 	for _, entry := range entries {
-		if entry.IsDir() {
-			continue
-		}
-		if !strings.HasSuffix(entry.Name(), ".md") {
+		if entry.IsDir() || !strings.HasSuffix(entry.Name(), ".md") {
 			continue
 		}
 
-		page, err := LoadPage(filepath.Join(contentDir, entry.Name()), renderer)
-		if err != nil {
-			return nil, err
-		}
-
-		name := strings.TrimSuffix(entry.Name(), ".md")
-		if name == "index" {
-			page.URL = "/"
-			if page.Frontmatter.Template == "" {
-				page.Frontmatter.Template = "home"
+		name := entry.Name()
+		g.Go(func() error {
+			page, err := LoadPage(filepath.Join(contentDir, name), renderer)
+			if err != nil {
+				return err
 			}
-		} else {
-			page.URL = "/" + name
-			if page.Frontmatter.Template == "" {
-				page.Frontmatter.Template = "page"
-			}
-		}
 
-		pages = append(pages, page)
+			stem := strings.TrimSuffix(name, ".md")
+			if stem == "index" {
+				page.URL = "/"
+				if page.Frontmatter.Template == "" {
+					page.Frontmatter.Template = "home"
+				}
+			} else {
+				page.URL = "/" + stem
+				if page.Frontmatter.Template == "" {
+					page.Frontmatter.Template = "page"
+				}
+			}
+
+			mu.Lock()
+			pages = append(pages, page)
+			mu.Unlock()
+			return nil
+		})
+	}
+
+	if err := g.Wait(); err != nil {
+		return nil, err
 	}
 
 	return pages, nil
@@ -123,26 +136,40 @@ func LoadBlogPosts(blogDir string, renderer *markdown.Renderer, includeDrafts bo
 		return nil, fmt.Errorf("reading blog dir: %w", err)
 	}
 
-	var posts []*Page
+	var (
+		mu    sync.Mutex
+		posts []*Page
+		g     errgroup.Group
+	)
 
 	for _, entry := range entries {
 		if entry.IsDir() || !strings.HasSuffix(entry.Name(), ".md") {
 			continue
 		}
 
-		page, err := LoadPage(filepath.Join(blogDir, entry.Name()), renderer)
-		if err != nil {
-			return nil, err
-		}
+		name := entry.Name()
+		g.Go(func() error {
+			page, err := LoadPage(filepath.Join(blogDir, name), renderer)
+			if err != nil {
+				return err
+			}
 
-		if page.Frontmatter.Draft && !includeDrafts {
-			continue
-		}
+			if page.Frontmatter.Draft && !includeDrafts {
+				return nil
+			}
 
-		page.URL = "/" + postsDir + "/" + page.Frontmatter.Slug
-		page.Frontmatter.Template = "post"
+			page.URL = "/" + postsDir + "/" + page.Frontmatter.Slug
+			page.Frontmatter.Template = "post"
 
-		posts = append(posts, page)
+			mu.Lock()
+			posts = append(posts, page)
+			mu.Unlock()
+			return nil
+		})
+	}
+
+	if err := g.Wait(); err != nil {
+		return nil, err
 	}
 
 	sort.Slice(posts, func(i, j int) bool {

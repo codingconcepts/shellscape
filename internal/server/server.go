@@ -15,29 +15,35 @@ import (
 )
 
 type Server struct {
-	addr     string
-	siteDir  string
-	outDir   string
-	buildFn  func() error
-	clients  map[chan struct{}]struct{}
-	mu       sync.Mutex
+	addr    string
+	siteDir string
+	outDir  string
+	buildFn func() error
+	watch   bool
+	clients map[chan struct{}]struct{}
+	mu      sync.Mutex
 }
 
-func New(addr string, siteDir string, outDir string, buildFn func() error) *Server {
+func New(addr string, siteDir string, outDir string, buildFn func() error, watch bool) *Server {
 	return &Server{
 		addr:    addr,
 		siteDir: siteDir,
 		outDir:  outDir,
 		buildFn: buildFn,
+		watch:   watch,
 		clients: make(map[chan struct{}]struct{}),
 	}
 }
 
 func (s *Server) ListenAndServe() error {
-	go s.watch()
+	if s.watch {
+		go s.watchFiles()
+	}
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("/_reload", s.handleSSE)
+	if s.watch {
+		mux.HandleFunc("/_reload", s.handleSSE)
+	}
 	mux.Handle("/", s.fileServer())
 
 	return http.ListenAndServe(s.addr, mux)
@@ -103,7 +109,7 @@ func (s *Server) notifyClients() {
 	}
 }
 
-func (s *Server) watch() {
+func (s *Server) watchFiles() {
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
 		log.Printf("fsnotify error: %v", err)

@@ -11,7 +11,7 @@ build: bundle-prod
 docs: bundle
 	go build ./cmd/shellscape
 	mv ./shellscape ~/dev/bin
-	(cd docs && open "http://localhost:1313" && shellscape serve)
+	(cd docs && open "http://localhost:1313" && shellscape serve --watch)
 
 test-js:
 	npx vitest run
