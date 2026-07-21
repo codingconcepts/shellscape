@@ -1,11 +1,22 @@
-build:
+bundle:
+	npx esbuild embed/static/src/terminal.js --bundle --outfile=embed/static/terminal.js --format=iife
+
+bundle-prod:
+	npx esbuild embed/static/src/terminal.js --bundle --outfile=embed/static/terminal.js --format=iife --minify
+
+build: bundle-prod
 	go build ./cmd/shellscape
 	mv ./shellscape ~/dev/bin
 
-docs: build
+docs: bundle
+	go build ./cmd/shellscape
+	mv ./shellscape ~/dev/bin
 	(cd docs && open "http://localhost:1313" && shellscape serve)
 
-test:
+test-js:
+	npx vitest run
+
+test: test-js
 	go test ./... -coverprofile=coverage.out
 	go tool cover -func=coverage.out | tail -1
 	@rm -f coverage.out

@@ -1,0 +1,11 @@
+{
+  "private": true,
+  "scripts": {
+    "test": "vitest run",
+    "bundle": "esbuild embed/static/src/terminal.js --bundle --outfile=embed/static/terminal.js --format=iife"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0",
+    "vitest": "^3.0.0"
+  }
+}

@@ -33,3 +33,6 @@ mysite/
 
 # Wrangler
 .wrangler/
+
+# Node
+node_modules/
