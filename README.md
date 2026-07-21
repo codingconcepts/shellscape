@@ -229,3 +229,18 @@ terminal:
 For an example of each (using the text "Shellscape"), see [example fonts](./example-fonts.md).
 
 ## Todos
+
+Fix
+
+* If you click on a tag, you're taking to a page that can't be navigated away from:
+
+```
+~/docs/tags/configuration$ cd ..
+cd: no such directory: ..
+```
+
+Performance
+
+* Worth adding a separate prod mode that doesn't watch for changes?
+
+* Any performance enhancements we can make?

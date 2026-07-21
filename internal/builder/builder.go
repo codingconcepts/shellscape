@@ -274,7 +274,7 @@ func (b *Builder) writeFindIndex(pages, posts []*content.Page) error {
 		}
 
 		var buf strings.Builder
-		for _, line := range strings.Split(p.RawContent, "\n") {
+		for line := range strings.SplitSeq(p.RawContent, "\n") {
 			line = strings.TrimSpace(line)
 			if line == "" {
 				continue
