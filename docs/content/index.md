@@ -6,11 +6,13 @@ template: "home"
 
 ## Websites that look like terminals
 
-Shellscape is a static site generator that produces interactive terminal-themed websites. Visitors can type real commands (`ls`, `cd`, `cat`) to navigate your content, or just click around like a normal site.
+Shellscape is a static site generator that produces interactive terminal-themed websites. Visitors can type real commands (`ls`, `cd`, `open`, `find`, `tree` etc.) to navigate your content, or just click around like a normal site.
 
 Write your content in YAML + Markdown. No frontend skills required.
 
-### Quick links
+### Getting started
 
-- Type `cd docs/install` to get started
-- Type `ls docs` to see all documentation
+Either:
+
+* Click on Docs at the top
+* Type `open docs/getting-started` below
