@@ -190,7 +190,7 @@
     function getNavEntries2(path) {
       return getNavEntries(SITE, path);
     }
-    function navigateTo(path, pushState) {
+    function navigateTo(path, pushState, hash) {
       var page = findPage2(path);
       var entries = getNavEntries2(path);
       if (!page && entries.length === 0 && path !== "/") {
@@ -208,7 +208,9 @@
       updatePromptPath();
       updateActiveNav();
       if (pushState !== false) {
-        window.history.pushState({ path }, "", path === "/" ? "/" : path);
+        var url = path === "/" ? "/" : path;
+        if (hash) url += hash;
+        window.history.pushState({ path, hash: hash || "" }, "", url);
       }
       return path;
     }
@@ -451,7 +453,14 @@
         buildTree(root, "");
       }
     };
-    function showPageContent(pagePath) {
+    function scrollToAnchor(hash) {
+      if (!hash) return;
+      var id = hash.replace(/^#/, "");
+      if (!id) return;
+      var el = document.getElementById(id);
+      if (el) el.scrollIntoView();
+    }
+    function showPageContent(pagePath, hash) {
       var resolvedPath = pagePath || currentPath;
       var page = findPage2(resolvedPath);
       if (page) {
@@ -465,7 +474,11 @@
         commands.ls();
       }
       if (resolvedPath === "/") showWelcome();
-      output.scrollTop = 0;
+      if (hash) {
+        scrollToAnchor(hash);
+      } else {
+        output.scrollTop = 0;
+      }
       suppressScroll = true;
     }
     function executeCommand(cmdStr) {
@@ -567,6 +580,7 @@
         if (p) {
           showPageContent(p);
         }
+        return;
       }
       var navLink = e.target.closest("[data-nav]");
       if (navLink) {
@@ -576,12 +590,35 @@
         if (p) {
           showPageContent(p);
         }
+        return;
+      }
+      var contentLink = e.target.closest(".content a[href]");
+      if (contentLink) {
+        var href = contentLink.getAttribute("href");
+        if (!href || href.indexOf("://") !== -1 || href.indexOf("mailto:") === 0) return;
+        if (href.charAt(0) === "#") {
+          e.preventDefault();
+          var hashUrl = window.location.pathname + href;
+          window.history.pushState({ path: currentViewPath, hash: href }, "", hashUrl);
+          scrollToAnchor(href);
+          return;
+        }
+        var hashIdx = href.indexOf("#");
+        var hash = hashIdx !== -1 ? href.substring(hashIdx) : "";
+        var navTarget = hashIdx !== -1 ? href.substring(0, hashIdx) : href;
+        if (navTarget) {
+          e.preventDefault();
+          var p = navigateTo(navTarget, true, hash);
+          if (p) {
+            showPageContent(p, hash);
+          }
+        }
       }
     });
     window.addEventListener("popstate", function(e) {
       if (e.state && e.state.path) {
-        var p = navigateTo(e.state.path, false);
-        if (p) showPageContent(p);
+        var p = navigateTo(e.state.path, false, e.state.hash);
+        if (p) showPageContent(p, e.state.hash);
       }
     });
     function showWelcome() {
@@ -685,9 +722,11 @@
     });
     var savedTheme = localStorage.getItem("ss_theme") || "system";
     applyTheme(savedTheme);
-    window.history.replaceState({ path: currentPath }, "", window.location.pathname);
+    var initHash = window.location.hash || "";
+    window.history.replaceState({ path: currentPath, hash: initHash }, "", window.location.pathname + initHash);
     updateActiveNav();
     showWelcome();
+    if (initHash) scrollToAnchor(initHash);
     input.focus();
     if (location.hostname === "localhost" || location.hostname === "127.0.0.1") {
       var es = new EventSource("/_reload");
@@ -702,3 +741,4 @@
     }
   })();
 })();
+//# sourceMappingURL=terminal.js.map

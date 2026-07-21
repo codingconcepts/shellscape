@@ -230,8 +230,6 @@ For an example of each (using the text "Shellscape"), see [example fonts](./exam
 
 ## Todos
 
-Performance
-
-* Worth adding a separate prod mode that doesn't watch for changes?
+Performance enhancements
 
 * Any performance enhancements we can make?

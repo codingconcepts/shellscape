@@ -10,6 +10,8 @@ draft: false
 
 All configuration lives in `config.yaml` at the root of your site.
 
+**Jump to:** [Full example](#full-example) | [Themes](#themes) | [Banner](#banner) | [Code syntax highlighting](#code-syntax-highlighting) | [Custom themes](#custom-themes) | [Deploy](#deploy)
+
 ### Full example
 
 ```yaml

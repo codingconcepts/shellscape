@@ -1,8 +1,8 @@
 bundle:
-	npx esbuild embed/static/src/terminal.js --bundle --outfile=embed/static/terminal.js --format=iife
+	npx esbuild embed/static/src/terminal.js --bundle --outfile=embed/static/terminal.js --format=iife --sourcemap
 
 bundle-prod:
-	npx esbuild embed/static/src/terminal.js --bundle --outfile=embed/static/terminal.js --format=iife --minify
+	npx esbuild embed/static/src/terminal.js --bundle --outfile=embed/static/terminal.js --format=iife --minify --sourcemap
 
 build: bundle-prod
 	go build ./cmd/shellscape

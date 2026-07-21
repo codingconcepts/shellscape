@@ -132,8 +132,12 @@ func (s *Server) watchFiles() {
 	_ = watcher.Add(s.siteDir)
 
 	var debounce *time.Timer
+	var firstChanged string
+	resetCh := make(chan struct{}, 1)
 	for {
 		select {
+		case <-resetCh:
+			firstChanged = ""
 		case event, ok := <-watcher.Events:
 			if !ok {
 				return
@@ -154,17 +158,29 @@ func (s *Server) watchFiles() {
 					_ = addRecursive(watcher, event.Name)
 				}
 			}
+			if firstChanged == "" {
+				firstChanged = event.Name
+			}
 			if debounce != nil {
 				debounce.Stop()
 			}
+			trigger := firstChanged
 			debounce = time.AfterFunc(200*time.Millisecond, func() {
-				log.Printf("Rebuilding...")
+				rel, _ := filepath.Rel(s.siteDir, trigger)
+				if rel == "" {
+					rel = trigger
+				}
+				log.Printf("Changed: %s — rebuilding...", rel)
 				if err := s.buildFn(); err != nil {
 					log.Printf("Build error: %v", err)
 					return
 				}
 				log.Printf("Rebuilt successfully")
 				s.notifyClients()
+				select {
+				case resetCh <- struct{}{}:
+				default:
+				}
 			})
 		case err, ok := <-watcher.Errors:
 			if !ok {

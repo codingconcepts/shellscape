@@ -89,7 +89,7 @@ func stripBgColors(css string) string {
 func resolveStyle(name string) (*chroma.Style, error) {
 	s := styles.Get(name)
 	if s == nil {
-		return nil, fmt.Errorf("unknown chroma style %q", name)
+		s = styles.Fallback
 	}
 	return s, nil
 }

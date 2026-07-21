@@ -95,7 +95,7 @@ import { escapeHtml, resolvePath as _resolvePath, findPage as _findPage, getNavE
     return _getNavEntries(SITE, path);
   }
 
-  function navigateTo(path, pushState) {
+  function navigateTo(path, pushState, hash) {
     var page = findPage(path);
 
     var entries = getNavEntries(path);
@@ -117,7 +117,9 @@ import { escapeHtml, resolvePath as _resolvePath, findPage as _findPage, getNavE
     updateActiveNav();
 
     if (pushState !== false) {
-      window.history.pushState({ path: path }, '', path === '/' ? '/' : path);
+      var url = path === '/' ? '/' : path;
+      if (hash) url += hash;
+      window.history.pushState({ path: path, hash: hash || '' }, '', url);
     }
 
     return path;
@@ -396,7 +398,15 @@ import { escapeHtml, resolvePath as _resolvePath, findPage as _findPage, getNavE
     }
   };
 
-  function showPageContent(pagePath) {
+  function scrollToAnchor(hash) {
+    if (!hash) return;
+    var id = hash.replace(/^#/, '');
+    if (!id) return;
+    var el = document.getElementById(id);
+    if (el) el.scrollIntoView();
+  }
+
+  function showPageContent(pagePath, hash) {
     var resolvedPath = pagePath || currentPath;
     var page = findPage(resolvedPath);
     if (page) {
@@ -410,7 +420,11 @@ import { escapeHtml, resolvePath as _resolvePath, findPage as _findPage, getNavE
       commands.ls();
     }
     if (resolvedPath === '/') showWelcome();
-    output.scrollTop = 0;
+    if (hash) {
+      scrollToAnchor(hash);
+    } else {
+      output.scrollTop = 0;
+    }
     suppressScroll = true;
   }
 
@@ -529,6 +543,7 @@ import { escapeHtml, resolvePath as _resolvePath, findPage as _findPage, getNavE
       if (p) {
         showPageContent(p);
       }
+      return;
     }
 
     var navLink = e.target.closest('[data-nav]');
@@ -539,6 +554,33 @@ import { escapeHtml, resolvePath as _resolvePath, findPage as _findPage, getNavE
       if (p) {
         showPageContent(p);
       }
+      return;
+    }
+
+    var contentLink = e.target.closest('.content a[href]');
+    if (contentLink) {
+      var href = contentLink.getAttribute('href');
+      if (!href || href.indexOf('://') !== -1 || href.indexOf('mailto:') === 0) return;
+
+      if (href.charAt(0) === '#') {
+        e.preventDefault();
+        var hashUrl = window.location.pathname + href;
+        window.history.pushState({ path: currentViewPath, hash: href }, '', hashUrl);
+        scrollToAnchor(href);
+        return;
+      }
+
+      var hashIdx = href.indexOf('#');
+      var hash = hashIdx !== -1 ? href.substring(hashIdx) : '';
+      var navTarget = hashIdx !== -1 ? href.substring(0, hashIdx) : href;
+
+      if (navTarget) {
+        e.preventDefault();
+        var p = navigateTo(navTarget, true, hash);
+        if (p) {
+          showPageContent(p, hash);
+        }
+      }
     }
   });
 
@@ -546,8 +588,8 @@ import { escapeHtml, resolvePath as _resolvePath, findPage as _findPage, getNavE
 
   window.addEventListener('popstate', function (e) {
     if (e.state && e.state.path) {
-      var p = navigateTo(e.state.path, false);
-      if (p) showPageContent(p);
+      var p = navigateTo(e.state.path, false, e.state.hash);
+      if (p) showPageContent(p, e.state.hash);
     }
   });
 
@@ -674,9 +716,11 @@ import { escapeHtml, resolvePath as _resolvePath, findPage as _findPage, getNavE
 
   // ── Init ──
 
-  window.history.replaceState({ path: currentPath }, '', window.location.pathname);
+  var initHash = window.location.hash || '';
+  window.history.replaceState({ path: currentPath, hash: initHash }, '', window.location.pathname + initHash);
   updateActiveNav();
   showWelcome();
+  if (initHash) scrollToAnchor(initHash);
   input.focus();
 
   // ── Live reload (dev only) ──

@@ -6,6 +6,7 @@ import (
 	"github.com/yuin/goldmark"
 	highlighting "github.com/yuin/goldmark-highlighting/v2"
 	"github.com/yuin/goldmark/extension"
+	"github.com/yuin/goldmark/parser"
 	"github.com/yuin/goldmark/renderer/html"
 
 	chromahtml "github.com/alecthomas/chroma/v2/formatters/html"
@@ -25,6 +26,9 @@ func NewRenderer() *Renderer {
 					chromahtml.WithClasses(true),
 				),
 			),
+		),
+		goldmark.WithParserOptions(
+			parser.WithAutoHeadingID(),
 		),
 		goldmark.WithRendererOptions(
 			html.WithUnsafe(),

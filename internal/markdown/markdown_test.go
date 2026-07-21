@@ -185,6 +185,28 @@ func TestCodeThemeCSS(t *testing.T) {
 				}
 			},
 		},
+		{
+			name:       "unknown dark style falls back",
+			darkStyle:  "github-dark",
+			lightStyle: "github",
+			wantErr:    false,
+			check: func(t *testing.T, css []byte) {
+				if len(css) == 0 {
+					t.Error("expected non-empty CSS from fallback")
+				}
+			},
+		},
+		{
+			name:       "unknown light style falls back",
+			darkStyle:  "dracula",
+			lightStyle: "not-a-style",
+			wantErr:    false,
+			check: func(t *testing.T, css []byte) {
+				if len(css) == 0 {
+					t.Error("expected non-empty CSS from fallback")
+				}
+			},
+		},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -210,7 +232,7 @@ func TestRender(t *testing.T) {
 		input   string
 		wantSub string
 	}{
-		{name: "heading", input: "# Hello", wantSub: "<h1>Hello</h1>"},
+		{name: "heading", input: "# Hello", wantSub: "<h1 id=\"hello\">Hello</h1>"},
 		{name: "paragraph", input: "some text", wantSub: "<p>some text</p>"},
 		{name: "bold", input: "**bold**", wantSub: "<strong>bold</strong>"},
 		{name: "code block", input: "```go\nfmt.Println()\n```", wantSub: "chroma"},
